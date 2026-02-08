@@ -63,8 +63,18 @@ Using this graph, participants predict outcomes using GNN models.
 - Higher accuracy gets a higher rank
 
 ---
+## 📊 Dataset
 
-## 📊 Dataset Structure
+The dataset consists of biomedical entities represented as a graph.
+
+- **Nodes:** Patients (or biomedical entities)
+- **Node Features:** Numerical biomedical values derived from signals
+  (e.g., ECG-based features or clinical measurements)
+- **Edges:** Similarity-based connections between patients
+- **Splits:** Train / Validation / Test
+
+Training and validation labels are publicly available.
+Test labels are hidden and used only during automated evaluation.
 
 ```text
 data/public/

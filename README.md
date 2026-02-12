@@ -89,6 +89,20 @@ The dataset consists of biomedical entities represented as a graph.
 Training and validation labels are publicly available.  
 Test labels are hidden and used only during automated evaluation.
 
+## 🧮 Graph Specification
+
+Let:
+
+- **A ∈ ℝ^(N×N)** denote the adjacency matrix representing patient similarity.
+- **X ∈ ℝ^(N×F)** denote the node feature matrix containing biomedical features.
+
+Where:
+- N = number of patients (nodes)
+- F = number of biomedical features per patient
+
+The graph may be sparse. Self-loops may be included during model training depending on the GNN architecture.
+
+
 ### Dataset Structure
 
 ```text

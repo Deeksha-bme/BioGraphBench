@@ -1,140 +1,90 @@
-BioGraphBench 🧬
-A Biomedical Graph Neural Network (GNN) Benchmark Competition
+<p align="center">
+  <h1 align="center">BioGraphBench 🧬</h1>
+  <p align="center"><b>A Biomedical Graph Neural Network (GNN) Benchmark Competition</b></p>
+</p>
 
-BioGraphBench is a structured benchmark competition designed to evaluate Graph Neural Networks (GNNs) on biomedical relational data such as patient similarity graphs, biological networks, and molecular interaction systems.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.9-blue" />
+  <img src="https://img.shields.io/badge/PyTorch-GNN-red" />
+  <img src="https://img.shields.io/badge/License-MIT-green" />
+</p>
 
-The benchmark ensures a fair comparison between human-designed and LLM-assisted models under identical data, rules, and computational constraints.
+---
 
-📌 Competition Overview
+## 📌 Competition Overview
 
-Biomedical data is inherently relational.
-Patients, genes, and molecules interact and influence one another rather than existing independently.
+BioGraphBench is a structured benchmark designed to evaluate **Graph Neural Networks (GNNs)** on biomedical relational data such as patient similarity graphs and signal-derived feature networks.
 
-BioGraphBench models this relational structure as a graph:
+The benchmark enables a fair comparison between:
 
-Nodes → Patients (or biomedical entities)
+- 🧠 Human-designed models  
+- 🤖 LLM-assisted models  
 
-Edges → Similarity or biological relationships
+under identical data, evaluation, and computational constraints.
 
-Node Features (Values) → Numerical biomedical measurements (e.g., ECG-derived features)
+---
 
-Participants must design GNN models to predict biomedical outcomes using this graph structure.
+## 🧠 Task Definition
 
-🧠 Learning Task
+**Task Type:** Node Classification  
 
-Task Type: Node Classification
+Given:
 
-Each node represents a patient
+- Adjacency matrix **A ∈ ℝ^(N×N)**
+- Feature matrix **X ∈ ℝ^(N×F)**
 
-Each patient has numerical biomedical features
+Predict:
 
-The objective is to predict a class label for each test node
-
-🔁 Competition Workflow
-1️⃣ Data Preparation
-
-Biomedical signals are processed into structured numerical values forming the node feature matrix (X).
-
-2️⃣ Graph Construction
-
-Patients are represented as nodes
-
-Similar patients are connected via similarity-based edges
-
-This forms the patient similarity graph
-
-3️⃣ Model Training
-
-Participants download the public dataset
-
-Any GNN architecture may be used
-
-Both human-designed and LLM-assisted approaches are allowed
-
-4️⃣ Prediction Submission
-
-Participants submit prediction files for test nodes
-
-Only predictions are uploaded (no training code required)
-
-5️⃣ Evaluation
-
-Predictions are evaluated using hidden test labels
-
-A fixed evaluation script ensures fairness
-
-6️⃣ Leaderboard
-
-Scores are ranked automatically
-
-Higher accuracy results in higher ranking
-
-🔍 Benchmark Pipeline
-
-Biomedical Data
-→ Graph Construction
-→ GNN Training
-→ Predictions
-→ Evaluation
-→ Leaderboard
-
-📊 Dataset Description
-
-The dataset represents biomedical entities as a graph.
-
-Nodes
-
-Patients (or biomedical entities)
-
-Node Features
-
-Numerical biomedical values derived from signals (e.g., ECG features, clinical measurements)
-
-Edges
-
-Similarity-based relationships between patients
-
-Data Splits
-
-Training Set (labels available)
-
-Validation Set (labels available)
-
-Test Set (labels hidden)
-
-Test labels are strictly used for automated evaluation only.
-
-🧮 Graph Specification
-
-Let:
-
-A ∈ ℝ^(N×N) denote the adjacency matrix representing patient similarity
-
-X ∈ ℝ^(N×F) denote the node feature matrix
+- Class label for each test node
 
 Where:
 
-N = number of patients (nodes)
+- **N** = number of patients  
+- **F** = number of biomedical features  
 
-F = number of biomedical features per patient
+---
 
-The graph may be sparse. Self-loops may optionally be added depending on the GNN architecture.
+## 🔍 Benchmark Pipeline
 
-⚠️ Dataset Challenges
+Biomedical Signals  
+→ Feature Extraction  
+→ Graph Construction  
+→ GNN Training  
+→ Prediction  
+→ Evaluation  
+→ Leaderboard Ranking  
 
-The dataset reflects real-world biomedical complexity:
+---
 
-Class imbalance between outcome categories
+## 📊 Dataset
 
-Noise in biomedical signal-derived features
+### Nodes
+Patients represented as graph nodes.
 
-Sparse graph connectivity
+### Features
+Numerical biomedical measurements (e.g., ECG-derived features).
 
-Potential distribution shift between train and test splits
+### Edges
+Similarity-based relationships between patients.
 
-These challenges encourage robust and generalizable modeling approaches.
+### Splits
+- Train (labels available)  
+- Validation (labels available)  
+- Test (labels hidden)  
 
-📁 Dataset Structure
+---
+
+## ⚠️ Dataset Challenges
+
+- Class imbalance  
+- Noisy signal-derived features  
+- Sparse connectivity  
+- Potential distribution shift  
+
+---
+
+## 📁 Dataset Structure
+```text
 data/
  ├── public/
  │    ├── train_nodes.csv
@@ -142,61 +92,101 @@ data/
  │    └── test_nodes.csv
  ├── adjacency_matrix.csv
  └── feature_matrix.csv
+```
+## 🖥️ Computational Constraints
 
-🖥️ Computational Constraints
+- Models must train within reasonable time limits (≤ 3 hours on CPU).
+- Only publicly provided dataset may be used.
+- External private datasets are not allowed.
+- Excessive compute-heavy architectures are discouraged.
 
-To ensure fairness:
+---
 
-Models must be trainable on a single standard GPU
+## 📤 Submission Format
 
-Excessive compute-heavy architectures are discouraged
+Participants must submit a CSV file in the following format:
 
-External private datasets are not allowed
+```csv
+node_id,predicted_label
+1001,1
+1002,0
+1003,2
 
-📤 Submission Policy
+---
+```
+## 📏 Evaluation Metric
 
-Submit a CSV file containing:
+**Primary Metric: Accuracy**
 
-node_id
+Accuracy = (Number of Correct Predictions) / (Total Test Samples)
 
-predicted_label
+Higher accuracy results in higher ranking on the leaderboard.
 
-No access to test labels is allowed
+Secondary metrics (optional reporting):
+- F1-score
+- Precision
+- Recall
 
-Submission format must strictly follow provided template
+---
 
-🤖 LLM Usage Policy
+## 🏆 Baseline Model
 
-This benchmark explicitly allows:
+A simple 2-layer Graph Convolutional Network (GCN) is provided as a reference baseline.
 
-Human-designed models
+Architecture:
+Input → GCN(64) → ReLU → GCN(num_classes)
 
-LLM-assisted model development
+Training Configuration:
+- Optimizer: Adam
+- Learning Rate: 0.01
+- Epochs: 200
 
-However:
+Baseline Validation Accuracy: **0.78**
 
-LLMs may not access hidden test data
+---
 
-LLM-generated code must follow dataset and compute constraints
+## 📈 Example Results
 
-Evaluation fairness is strictly maintained
+| Model | Validation Accuracy | Test Accuracy |
+|-------|--------------------|---------------|
+| GCN | 0.78 | 0.76 |
+| GraphSAGE | 0.81 | 0.79 |
+| GAT | 0.84 | 0.82 |
 
-🎯 Evaluation Metric
+*(Values shown are example benchmark results.)*
 
-Primary metric:
+---
 
-Accuracy
+## 🏅 Leaderboard (Example)
 
-(Additional metrics such as F1-score may be reported depending on dataset characteristics.)
+| Rank | Team | Method | Test Accuracy |
+|------|------|--------|--------------|
+| 🥇 1 | Team Alpha | GAT | 0.86 |
+| 🥈 2 | Team Beta | GraphSAGE | 0.83 |
+| 🥉 3 | Team Gamma | GCN | 0.79 |
 
-🏆 Objective
+---
 
-The goal of BioGraphBench is to:
+## 🤖 LLM Usage Policy
 
-Evaluate relational learning in biomedical contexts
+Allowed:
+- LLM-assisted model development
+- Code generation assistance
 
-Encourage reproducible graph-based modeling
+Not Allowed:
+- Access to hidden test labels
+- Leakage of evaluation data
+- Use of external private biomedical datasets
 
-Compare human and LLM-assisted approaches under standardized conditions
+---
 
-This benchmark is part of an academic competition series focused on Graph Deep Learning (GDL) in biomedical applications.
+## 🎯 Objective
+
+BioGraphBench aims to:
+- Advance graph-based biomedical modeling
+- Encourage reproducible research
+- Compare human vs LLM-assisted approaches
+- Provide a standardized academic benchmark
+
+
+

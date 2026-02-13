@@ -2,16 +2,12 @@ name: Score Submission
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   score:
     runs-on: ubuntu-latest
     steps:
       - name: Print ID
-        run: echo "ID: n0001"
-
-
-
-
+        run: |
+          echo "ID: n0001"

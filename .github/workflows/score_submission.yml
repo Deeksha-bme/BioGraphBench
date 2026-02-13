@@ -2,12 +2,23 @@ name: Score Submission
 
 on:
   push:
-    branches: [ main ]
+    paths:
+      - "submissions/*.csv"
 
 jobs:
   score:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Print ID
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install requirements
+        run: pip install -r requirements.txt
+
+      - name: Run evaluation
         run: |
-          echo "ID: n0001"
+          python evaluate.py sample_submission.csv test_nodes.csv

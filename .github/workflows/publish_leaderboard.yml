@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "leaderboard/leaderboard.csv"
+      - "leaderboard.csv"
 
 jobs:
   render:
@@ -33,6 +33,6 @@ jobs:
           fi
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add leaderboard/leaderboard.md
+          git add leaderboard.md
           git commit -m "Update leaderboard.md"
           git push

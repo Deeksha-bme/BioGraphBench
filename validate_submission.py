@@ -1,4 +1,3 @@
-
 import pandas as pd
 import sys
 
@@ -6,20 +5,25 @@ def main(pred_path, test_nodes_path):
     preds = pd.read_csv(pred_path)
     test_nodes = pd.read_csv(test_nodes_path)
 
-    if "id" not in preds.columns or "y_pred" not in preds.columns:
-        raise ValueError("predictions.csv must contain id and y_pred")
+    # Column check
+    if "node_id" not in preds.columns or "predicted_label" not in preds.columns:
+        raise ValueError("Submission must have columns: node_id, predicted_label")
 
-    if preds["id"].duplicated().any():
-        raise ValueError("Duplicate IDs found")
+    # Duplicate IDs
+    if preds["node_id"].duplicated().any():
+        raise ValueError("Duplicate node_ids found in submission")
 
-    if preds["y_pred"].isna().any():
-        raise ValueError("NaN predictions found")
+    # NaN predictions
+    if preds["predicted_label"].isna().any():
+        raise ValueError("NaN values found in predictions")
 
-    if ((preds["y_pred"] < 0) | (preds["y_pred"] > 1)).any():
-        raise ValueError("Predictions must be in [0,1]")
+    # Ensure integer labels
+    if not preds["predicted_label"].apply(lambda x: isinstance(x,int)).all():
+        raise ValueError("All predictions must be integer class labels")
 
-    if set(preds["id"]) != set(test_nodes["id"]):
-        raise ValueError("Prediction IDs do not match test nodes")
+    # IDs match test nodes
+    if set(preds["node_id"]) != set(test_nodes["node_id"]):
+        raise ValueError("Submission node_ids do not match test nodes")
 
     print("VALID SUBMISSION")
 

@@ -5,29 +5,64 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
 def evaluate():
+    # 1. Setup paths
     submission_folder = "submissions"
+    if not os.path.exists(submission_folder):
+        return
+
     files = [f for f in os.listdir(submission_folder) if f.endswith('.enc')]
     if not files:
+        print("❌ No .enc file found.")
         return
     
     encrypted_path = os.path.join(submission_folder, files[0])
+    
+    # 2. Get Secrets
     private_key_text = os.getenv("COMPETITION_PRIVATE_KEY")
-    
-    # --- DIAGNOSTIC SECTION ---
-    with open(encrypted_path, "rb") as f:
-        encrypted_data = f.read()
-    
-    print(f"DEBUG: Key Secret Found = {private_key_text is not None}")
-    print(f"DEBUG: Encrypted File Size = {len(encrypted_data)} bytes")
-    # --------------------------
+    hidden_labels_text = os.getenv("TEST_LABELS") # Your answer key secret
 
-    private_key = serialization.load_pem_private_key(private_key_text.encode(), password=None)
-    
-    decrypted_data = private_key.decrypt(
-        encrypted_data,
-        padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
-    )
-    print("✅ Decryption successful!")
+    if not private_key_text or not hidden_labels_text:
+        print("❌ Missing Secrets (Check COMPETITION_PRIVATE_KEY or TEST_LABELS)")
+        return
+
+    # 3. Decrypt
+    try:
+        private_key = serialization.load_pem_private_key(private_key_text.encode(), password=None)
+        with open(encrypted_path, "rb") as f:
+            encrypted_data = f.read()
+        
+        decrypted_data = private_key.decrypt(
+            encrypted_data,
+            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
+        )
+        print("✅ Decryption successful!")
+    except Exception as e:
+        print(f"❌ Decryption failed: {e}")
+        return
+
+    # 4. Load and Align Data (This fixes your "identically-labeled" error)
+    try:
+        # Load submission (the file you uploaded)
+        sub_df = pd.read_csv(io.StringIO(decrypted_data.decode()))
+        # Load truth (from GitHub Secrets)
+        truth_df = pd.read_csv(io.StringIO(hidden_labels_text))
+
+        # We take only the number of rows present in the truth file to avoid mismatch
+        # and ensure both are indexed the same way (0, 1, 2...)
+        sub_values = sub_df['predicted_label'].reset_index(drop=True)
+        truth_values = truth_df['label'].reset_index(drop=True)
+
+        # 5. Calculate Score
+        accuracy = (sub_values == truth_values).mean()
+        print(f"✅ SCORE_SUCCESS: {accuracy:.4f}")
+
+        # 6. Save the score for the leaderboard to pick up
+        with open("score.txt", "w") as f:
+            f.write(str(accuracy))
+            
+    except Exception as e:
+        print(f"❌ Data Processing Error: {e}")
+        print("Make sure your CSV columns are 'predicted_label' in submission and 'label' in secret.")
 
 if __name__ == "__main__":
     evaluate()

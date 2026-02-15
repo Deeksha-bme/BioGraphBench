@@ -1,42 +1,44 @@
-name: Publish Leaderboard
+name: Leaderboard Bot
+
 on:
   push:
-    branches: [ main ]
     paths:
-      - "leaderboard.csv"
-  workflow_dispatch:
+      - 'submissions/**'  # Runs when a student uploads a file
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
-  render:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.10'
 
-      - name: Install deps
-        run: |
-          # If you don't have a requirements.txt, this line might fail. 
-          # You can replace it with: pip install pandas
-          pip install pandas || echo "No requirements file found"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-      - name: Render leaderboard markdown
-        run: |
-          python render_leaderboard.py
+      - name: Run evaluation
+        env:
+          COMPETITION_PRIVATE_KEY: ${{ secrets.COMPETITION_PRIVATE_KEY }}
+          TEST_LABELS: ${{ secrets.TEST_LABELS }}
+        run: python evaluate.py
 
-      - name: Commit rendered leaderboard
+      - name: Update Leaderboard CSV
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-          git add leaderboard.md
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Update leaderboard.md"
-            git push
-          fi
+          python render_leaderboard.py # This script should take score.txt and update leaderboard.csv
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add leaderboard.csv
+          git commit -m "Update leaderboard with new score" || exit 0
+          git push

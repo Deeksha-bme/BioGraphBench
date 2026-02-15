@@ -1,5 +1,4 @@
 name: Publish Leaderboard
-
 on:
   push:
     branches: [ main ]

@@ -23,6 +23,11 @@ The benchmark enables a fair comparison between:
 under identical data, evaluation, and computational constraints.
 
 ---
+# BioGraphBench
+... your project description ...
+
+## 🏆 Current Standings
+[View the Full Leaderboard here](./leaderboard.md)
 
 ## 🧠 Task Definition
 

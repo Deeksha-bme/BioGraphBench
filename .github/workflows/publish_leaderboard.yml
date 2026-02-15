@@ -1,13 +1,17 @@
 name: Publish Leaderboard
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
     paths:
-      - "leaderboard/leaderboard.csv"
+      - "leaderboard.csv"
+  workflow_dispatch:
 
 jobs:
   render:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -22,16 +26,16 @@ jobs:
 
       - name: Render leaderboard markdown
         run: |
-          python competition/render_leaderboard.py
+          python render_leaderboard.py
 
       - name: Commit rendered leaderboard
         run: |
-          if git diff --quiet; then
-            echo "No changes."
-            exit 0
-          fi
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add leaderboard/leaderboard.md
-          git commit -m "Update leaderboard.md"
-          git push
+          git add leaderboard.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update leaderboard.md"
+            git push
+          fi

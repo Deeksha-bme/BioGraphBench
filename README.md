@@ -125,6 +125,8 @@ Bash
 # Use our provided encryption tool
 Python scripts/encrypt_submission.py submission.csv public_key.pem submissions/yourname.enc
 Submit the .enc file via a Pull Request. Only our automated system can decrypt and score it!
+
+```
 ```
 ## 📏 Evaluation Metric
 

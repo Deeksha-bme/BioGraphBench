@@ -1,8 +1,7 @@
 name: Publish Leaderboard
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
     paths:
       - "leaderboard.csv"
   workflow_dispatch:
@@ -22,7 +21,9 @@ jobs:
 
       - name: Install deps
         run: |
-          pip install -r requirements.txt
+          # If you don't have a requirements.txt, this line might fail. 
+          # You can replace it with: pip install pandas
+          pip install pandas || echo "No requirements file found"
 
       - name: Render leaderboard markdown
         run: |

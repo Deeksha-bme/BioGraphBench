@@ -3,7 +3,7 @@ on:
   push:
     paths:
       - 'submissions/**'
- workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   score:

@@ -3,7 +3,7 @@ name: Leaderboard Bot
 on:
   push:
     paths:
-      - 'submissions/**'  # Runs when a student uploads a file
+      - 'submissions/**'
 
 permissions:
   contents: write
@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetches all history so push doesn't fail
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -31,14 +33,15 @@ jobs:
           TEST_LABELS: ${{ secrets.TEST_LABELS }}
         run: python evaluate.py
 
-      - name: Update Leaderboard CSV
+      - name: Update Leaderboard Data
         run: |
-          python render_leaderboard.py # This script should take score.txt and update leaderboard.csv
+          python render_leaderboard.py
 
       - name: Commit and Push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add leaderboard.csv
+          git pull origin main # Get any changes made while this was running
+          git add leaderboard.csv leaderboard.md
           git commit -m "Update leaderboard with new score" || exit 0
-          git push
+          git push origin main

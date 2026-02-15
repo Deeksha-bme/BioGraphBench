@@ -114,13 +114,25 @@ node_id,predicted_label
 
 ---
 ```
+🔒 How to Submit (Encrypted)
+To keep your results private, you must encrypt your submission.csv before sending a Pull Request.
+
+Download the public_key.pem from this repo.
+
+Run the following command to lock your file:
+
+Bash
+# Use our provided encryption tool
+Python scripts/encrypt_submission.py submission.csv public_key.pem submissions/yourname.enc
+Submit the .enc file via a Pull Request. Only our automated system can decrypt and score it!
+```
 ## 📏 Evaluation Metric
 
 **Primary Metric: Accuracy**
 
 Accuracy = (Number of Correct Predictions) / (Total Test Samples)
 
-Higher accuracy results in higher ranking on the leaderboard.
+Higher accuracy results in a higher ranking on the leaderboard.
 
 Secondary metrics (optional reporting):
 - F1-score

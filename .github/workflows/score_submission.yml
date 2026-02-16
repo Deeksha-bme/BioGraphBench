@@ -43,3 +43,18 @@ jobs:
           git add leaderboard.csv leaderboard.md
           git commit -m "Score for ${{ github.event.inputs.participant_name }}" || exit 0
           git push
+          - name: Commit and Push Results
+        run: |
+          git config --global user.name "Leaderboard Bot"
+          git config --global user.email "actions@github.com"
+          git add leaderboard.csv leaderboard.md
+          git commit -m "Score for ${{ github.event.inputs.participant_name }}" || exit 0
+          git push
+          
+      # Add this step to force the website to refresh
+      - name: Trigger Website Rebuild
+        run: |
+          curl -L -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/repos/${{ github.repository }}/pages/builds

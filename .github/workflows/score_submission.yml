@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Important for rebase to work
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -43,13 +43,14 @@ jobs:
           git config --global user.name "Leaderboard Bot"
           git config --global user.email "bot@github.com"
           
-          # 1. Add and commit the changes first
+          # 1. Stage the changes (This fixes the 'unstaged' error)
           git add leaderboard.csv leaderboard.md
+          
+          # 2. Commit locally
           git commit -m "Update for ${{ github.event.inputs.participant_name }}" || echo "No changes to commit"
           
-          # 2. If the pull fails, it's usually because of a conflict. 
-          # This command tells git to grab the online version and put our new row on top.
+          # 3. Pull latest changes from GitHub to prevent conflicts
           git pull --rebase origin main
           
-          # 3. Finally, send it back to the cloud
+          # 4. Push the final result
           git push origin main

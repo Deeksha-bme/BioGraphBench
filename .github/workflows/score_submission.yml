@@ -38,19 +38,21 @@ jobs:
           MODEL_TYPE: ${{ github.event.inputs.model_name }}
         run: python render_leaderboard.py
 
+    
       - name: Commit and Push
         run: |
           git config --global user.name "Leaderboard Bot"
           git config --global user.email "bot@github.com"
           
-          # 1. Stage the changes (This fixes the 'unstaged' error)
+          # 1. Add everything so nothing is 'unstaged'
           git add leaderboard.csv leaderboard.md
           
-          # 2. Commit locally
+          # 2. Pull with rebase and tell it to AUTO-STASH any mess
+          # This handles the 'unstaged changes' error automatically
+          git pull --rebase --autostash origin main
+          
+          # 3. Commit the new results
           git commit -m "Update for ${{ github.event.inputs.participant_name }}" || echo "No changes to commit"
           
-          # 3. Pull latest changes from GitHub to prevent conflicts
-          git pull --rebase origin main
-          
-          # 4. Push the final result
+          # 4. Push to the repository
           git push origin main

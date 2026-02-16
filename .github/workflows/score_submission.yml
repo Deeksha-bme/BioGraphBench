@@ -6,6 +6,7 @@ on:
       participant_name:
         description: 'Team Name'
         required: true
+        type: string
 
 permissions:
   contents: write
@@ -14,8 +15,11 @@ jobs:
   score:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
       
@@ -32,13 +36,10 @@ jobs:
           PARTICIPANT: ${{ github.event.inputs.participant_name }}
         run: python render_leaderboard.py
 
-      - name: Commit Results
+      - name: Commit and Push Results
         run: |
-        
           git config --global user.name "Leaderboard Bot"
           git config --global user.email "actions@github.com"
           git add leaderboard.csv leaderboard.md
           git commit -m "Score for ${{ github.event.inputs.participant_name }}" || exit 0
           git push
-    - name: Trigger Website Update
-      run: curl -X POST -u ":${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ github.repository }}/pages/builds

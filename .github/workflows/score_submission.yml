@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   score:
@@ -41,32 +43,13 @@ jobs:
           git config --global user.name "Leaderboard Bot"
           git config --global user.email "actions@github.com"
           git add leaderboard.csv leaderboard.md
-          git commit -m "Score for ${{ github.event.inputs.participant_name }}" || exit 0
+          git commit -m "Score update for ${{ github.event.inputs.participant_name }}" || exit 0
           git push
-          - name: Commit and Push Results
+
+      - name: Cool Down and Trigger
         run: |
-          git config --global user.name "Leaderboard Bot"
-          git config --global user.email "actions@github.com"
-          git add leaderboard.csv leaderboard.md
-          git commit -m "Score for ${{ github.event.inputs.participant_name }}" || exit 0
-          git push
-          
-      # Add this step to force the website to refresh
-      - name: Trigger Website Rebuild
-        run: |
+          sleep 20
           curl -L -X POST \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           https://api.github.com/repos/${{ github.repository }}/pages/builds
-      - name: Commit and Push Results
-        run: |
-          git config --global user.name "Leaderboard Bot"
-          git config --global user.email "actions@github.com"
-          git add leaderboard.csv leaderboard.md
-          git commit -m "Score update for ${{ github.event.inputs.participant_name }}" || exit 0
-          git push
-        
-      # This 20-second pause prevents the Jekyll builder from crashing 
-      # while the new files are being synced.
-      - name: Cool Down
-        run: sleep 20

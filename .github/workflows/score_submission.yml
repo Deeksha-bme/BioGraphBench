@@ -46,7 +46,7 @@ jobs:
           git commit -m "Score update for ${{ github.event.inputs.participant_name }}" || exit 0
           git push
 
-      - name: Cool Down and Trigger
+      - name: Trigger Website Rebuild
         run: |
           sleep 20
           curl -L -X POST \

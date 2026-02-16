@@ -2,4 +2,4 @@
 
 | Rank | Team | Score | Model | Date |
 |---|---|---|---|---|
-| 1 | winner_final | 0.2000 | GNN_v1 | 2026-02-16 |
+| 1 | Gold_Standard | 0.2000 | BaselineGNN | 2026-02-16 |

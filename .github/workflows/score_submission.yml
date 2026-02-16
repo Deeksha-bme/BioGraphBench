@@ -43,12 +43,12 @@ jobs:
           git config --global user.name "Leaderboard Bot"
           git config --global user.email "actions@github.com"
           git add leaderboard.csv leaderboard.md
-          git commit -m "Score update for ${{ github.event.inputs.participant_name }}" || exit 0
+          git commit -m "Update for ${{ github.event.inputs.participant_name }}" || exit 0
           git push
 
       - name: Trigger Website Rebuild
         run: |
-          sleep 20
+          sleep 15
           curl -L -X POST \
           -H "Accept: application/vnd.github+json" \
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \

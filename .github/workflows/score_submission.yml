@@ -1,31 +1,30 @@
 name: Score Submission
-
 on:
   workflow_dispatch:
     inputs:
       participant_name:
         description: 'Team Name'
         required: true
-        type: string
-
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+      model_name:
+        description: 'Model Type (e.g., GNN, Random Forest)'
+        required: true
+        default: 'Baseline'
 
 jobs:
   score:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-      
-      - name: Install dependencies
+          python-version: '3.9'
+
+      - name: Install Dependencies
         run: pip install pandas scikit-learn
 
       - name: Run Evaluation
@@ -36,6 +35,7 @@ jobs:
       - name: Update Leaderboard
         env:
           PARTICIPANT: ${{ github.event.inputs.participant_name }}
+          MODEL_TYPE: ${{ github.event.inputs.model_name }}
         run: python render_leaderboard.py
 
       - name: Commit and Push
@@ -43,13 +43,6 @@ jobs:
           git config --global user.name "Leaderboard Bot"
           git config --global user.email "bot@github.com"
           git add leaderboard.csv leaderboard.md
-          git commit -m "Update for ${{ github.event.inputs.participant_name }}"
-          git pull --rebase origin main  # <--- ADD THIS LINE HERE
+          git commit -m "Update for ${{ github.event.inputs.participant_name }}" || echo "No changes"
+          git pull --rebase origin main
           git push origin main
-      - name: Trigger Website Rebuild
-        run: |
-          sleep 15
-          curl -L -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          https://api.github.com/repos/${{ github.repository }}/pages/builds

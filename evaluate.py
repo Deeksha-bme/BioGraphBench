@@ -36,3 +36,12 @@ def evaluate():
 
 if __name__ == "__main__":
     evaluate()
+# ... after your F1 calculation ...
+score_to_save = f"{f1_ideal:.4f}"
+
+# Use absolute path to ensure it saves in the main folder
+base_path = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(base_path, "score.txt"), "w") as f:
+    f.write(score_to_save)
+
+print(f"Successfully saved score {score_to_save} to score.txt")

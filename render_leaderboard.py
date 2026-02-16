@@ -15,11 +15,10 @@ def main():
 
     score = score_path.read_text().strip()
     team = os.getenv("PARTICIPANT", "Unknown")
-    # We add a default model type since it's not in your workflow yet
-    model = "Baseline" 
+    model = os.getenv("MODEL_TYPE", "Baseline")
     date = datetime.now().strftime("%Y-%m-%d")
 
-    # Update CSV with the correct columns
+    # Save to CSV
     file_exists = csv_path.exists()
     with open(csv_path, "a", newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
@@ -27,7 +26,7 @@ def main():
             writer.writerow(["team", "score", "model", "date"])
         writer.writerow([team, score, model, date])
     
-    # Sort and Render
+    # Read and Sort
     rows = []
     with open(csv_path, "r", encoding='utf-8') as f:
         reader = csv.DictReader(f)
@@ -39,13 +38,14 @@ def main():
     
     rows.sort(key=lambda x: x['score'], reverse=True)
     
+    # Create Markdown Table
     md_content = "# Leaderboard\n\n| Rank | Team | Score | Model | Date |\n|---|---|---|---|---|\n"
     for i, r in enumerate(rows, 1):
         md_content += f"| {i} | {r['team']} | {r['score']:.4f} | {r['model']} | {r['date']} |\n"
         
     md_path.write_text(md_content, encoding='utf-8')
     
-    # Cleanup files for next run
+    # Cleanup for next run
     if score_path.exists(): os.remove(score_path)
     for f in glob.glob("submissions/*.csv"): os.remove(f)
 

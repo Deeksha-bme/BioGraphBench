@@ -1,45 +1,38 @@
 import pandas as pd
 import os
 import io
+from sklearn.metrics import f1_score
 
 def evaluate():
-    # 1. Get Secret Data
     labels_raw = os.getenv("TEST_LABELS")
     if not labels_raw:
-        print("Error: TEST_LABELS secret is empty")
+        print("❌ Secret TEST_LABELS not found!")
         return
 
-    # Load truth labels
+    # 1. Load Truth Labels
     truth_df = pd.read_csv(io.StringIO(labels_raw))
-    truth_values = truth_df['target'].values # Matches your "target" column name
+    truth_values = truth_df['target'].values
 
-    # 2. Look for the two submission files
-    # Expecting: submissions/ideal.csv and submissions/perturbed.csv
-    ideal_path = "submissions/ideal.csv"
-    perturbed_path = "submissions/perturbed.csv"
-
+    # 2. Load Submissions (Ensure files exist in /submissions)
     try:
-        ideal_df = pd.read_csv(ideal_path)
-        pert_df = pd.read_csv(perturbed_path)
+        ideal_df = pd.read_csv("submissions/ideal.csv")
+        pert_df = pd.read_csv("submissions/perturbed.csv")
         
-        # Calculate F1 or Accuracy (using your .values fix from yesterday!)
-        acc_ideal = (ideal_df['target'].values == truth_values).mean()
-        acc_pert = (pert_df['target'].values == truth_values).mean()
+        # 3. Calculate Macro F1
+        f1_ideal = f1_score(truth_values, ideal_df['target'].values, average='macro')
+        f1_pert = f1_score(truth_values, pert_df['target'].values, average='macro')
         
-        # Robustness Gap
-        gap = abs(acc_ideal - acc_pert)
+        # 4. Calculate Robustness Gap
+        gap = abs(f1_ideal - f1_pert)
         
-        # Final Score (Example: Average of both)
-        final_score = (acc_ideal + acc_pert) / 2
-
-        # Save to score.txt for the renderer
+        # Save primary score (Ideal F1) for the leaderboard
         with open("score.txt", "w") as f:
-            f.write(f"{final_score:.4f}")
+            f.write(f"{f1_ideal:.4f}")
             
-        print(f"Scoring Complete: Ideal={acc_ideal}, Perturbed={acc_pert}, Gap={gap}")
+        print(f"✅ Success! Ideal: {f1_ideal:.4f}, Perturbed: {f1_pert:.4f}, Gap: {gap:.4f}")
 
     except Exception as e:
-        print(f"Error during scoring: {e}")
+        print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
     evaluate()

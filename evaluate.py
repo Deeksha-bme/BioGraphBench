@@ -10,30 +10,28 @@ def evaluate():
         csv_files = glob.glob("submissions/*.csv")
         
         if not labels_raw or not csv_files:
-            print("❌ Missing labels or submission file.")
             with open("score.txt", "w") as f: f.write("0.0000")
             return
 
+        # Load data
         truth_df = pd.read_csv(io.StringIO(labels_raw))
         sub_df = pd.read_csv(csv_files[0])
 
-        # DEBUG: These prints show up in your GitHub Actions Log
-        print("--- DEBUG INFO ---")
-        print(f"Secret Head:\n{truth_df.head()}")
-        print(f"Submission Head:\n{sub_df.head()}")
+        # Align by graph_index to ensure we compare the right rows
+        merged = pd.merge(truth_df, sub_df, on='graph_index', suffixes=('_true', '_pred'))
         
-        # Ensure data types match (force them to be integers)
-        truth_df['target'] = truth_df['target'].astype(int)
-        sub_df['target'] = sub_df['target'].astype(int)
-
-        score = f1_score(truth_df['target'], sub_df['target'], average='macro')
+        if merged.empty:
+            score = 0.0
+        else:
+            score = f1_score(merged['target_true'].astype(int), 
+                             merged['target_pred'].astype(int), 
+                             average='macro')
         
         with open("score.txt", "w") as f:
             f.write(f"{score:.4f}")
-        print(f"✅ Success! Calculated Score: {score:.4f}")
-
+            
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
         with open("score.txt", "w") as f: f.write("0.0000")
 
 if __name__ == "__main__":

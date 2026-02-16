@@ -13,20 +13,19 @@ def evaluate():
             with open("score.txt", "w") as f: f.write("0.0000")
             return
 
-        # Load and clean data
-        truth_df = pd.read_csv(io.StringIO(labels_raw.strip())).dropna()
-        sub_df = pd.read_csv(csv_files[0]).dropna()
+        # Use .strip() to remove the empty line 5 from your image
+        truth_df = pd.read_csv(io.StringIO(labels_raw.strip()))
+        sub_df = pd.read_csv(csv_files[0])
 
-        # Force everything to integer to prevent 0.2000 errors
-        truth_df['graph_index'] = truth_df['graph_index'].astype(int)
-        truth_df['target'] = truth_df['target'].astype(int)
-        sub_df['graph_index'] = sub_df['graph_index'].astype(int)
-        sub_df['target'] = sub_df['target'].astype(int)
-
-        # Merge on index to ensure we are comparing the right rows
-        merged = pd.merge(truth_df, sub_df, on='graph_index', how='inner')
+        # Force column names and integer types
+        truth_df.columns = ['graph_index', 'target']
+        sub_df.columns = ['graph_index', 'target']
         
-        # Calculate Simple Accuracy first to test, then F1
+        # This ensures row 0 is compared to row 0, even if there's a blank line
+        truth_df = truth_df.dropna().astype(int)
+        sub_df = sub_df.dropna().astype(int)
+
+        merged = pd.merge(truth_df, sub_df, on='graph_index')
         score = f1_score(merged['target_x'], merged['target_y'], average='macro')
         
         with open("score.txt", "w") as f:
@@ -34,3 +33,6 @@ def evaluate():
             
     except Exception as e:
         with open("score.txt", "w") as f: f.write("0.0000")
+
+if __name__ == "__main__":
+    evaluate()

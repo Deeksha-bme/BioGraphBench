@@ -1,0 +1,40 @@
+name: Manual Scoring Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      participant_name:
+        description: 'Name of the participant/team'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: pip install pandas cryptography
+
+      - name: Run Evaluation
+        env:
+          TEST_LABELS: ${{ secrets.TEST_LABELS }}
+          PARTICIPANT: ${{ github.event.inputs.participant_name }}
+        run: python evaluate.py
+
+      - name: Update Leaderboard
+        run: python render_leaderboard.py
+
+      - name: Save Results
+        run: |
+          git config --global user.name "Organizer Bot"
+          git config --global user.email "actions@github.com"
+          git add leaderboard.csv leaderboard.md
+          git commit -m "Score for ${{ github.event.inputs.participant_name }}" || exit 0
+          git push

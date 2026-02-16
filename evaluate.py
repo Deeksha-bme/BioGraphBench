@@ -1,47 +1,42 @@
 import pandas as pd
 import os
 import io
+import glob
 from sklearn.metrics import f1_score
 
 def evaluate():
-    labels_raw = os.getenv("TEST_LABELS")
-    if not labels_raw:
-        print("❌ Secret TEST_LABELS not found!")
-        return
-
-    # 1. Load Truth Labels
-    truth_df = pd.read_csv(io.StringIO(labels_raw))
-    truth_values = truth_df['target'].values
-
-    # 2. Load Submissions (Ensure files exist in /submissions)
     try:
-        ideal_df = pd.read_csv("submissions/ideal.csv")
-        pert_df = pd.read_csv("submissions/perturbed.csv")
+        # 1. Load Labels from Secret
+        labels_raw = os.getenv("TEST_LABELS")
+        if not labels_raw:
+            print("❌ Secret TEST_LABELS not found!")
+            return
+
+        truth_df = pd.read_csv(io.StringIO(labels_raw))
         
-        # 3. Calculate Macro F1
-        f1_ideal = f1_score(truth_values, ideal_df['target'].values, average='macro')
-        f1_pert = f1_score(truth_values, pert_df['target'].values, average='macro')
-        
-        # 4. Calculate Robustness Gap
-        gap = abs(f1_ideal - f1_pert)
-        
-        # Save primary score (Ideal F1) for the leaderboard
-        with open("score.txt", "w") as f:
-            f.write(f"{f1_ideal:.4f}")
+        # 2. Find any CSV in the submissions folder
+        submission_files = glob.glob("submissions/*.csv")
+        if not submission_files:
+            # If your file is .enc, pandas can't read it. It MUST be a .csv
+            print("❌ No .csv file found in submissions/ folder!")
+            exit(1)
             
-        print(f"✅ Success! Ideal: {f1_ideal:.4f}, Perturbed: {f1_pert:.4f}, Gap: {gap:.4f}")
+        # Take the first CSV found
+        sub_df = pd.read_csv(submission_files[0])
+        
+        # 3. Calculate Score
+        # Ensure column names match your CSV (usually 'target')
+        f1 = f1_score(truth_df['target'], sub_df['target'], average='macro')
+        
+        # 4. Save score
+        with open("score.txt", "w") as f:
+            f.write(f"{f1:.4f}")
+            
+        print(f"✅ Success! Evaluated {submission_files[0]} with score: {f1:.4f}")
 
     except Exception as e:
         print(f"❌ Error: {e}")
+        exit(1)
 
 if __name__ == "__main__":
     evaluate()
-# ... after your F1 calculation ...
-score_to_save = f"{f1_ideal:.4f}"
-
-# Use absolute path to ensure it saves in the main folder
-base_path = os.path.dirname(os.path.abspath(__file__))
-with open(os.path.join(base_path, "score.txt"), "w") as f:
-    f.write(score_to_save)
-
-print(f"Successfully saved score {score_to_save} to score.txt")

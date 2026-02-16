@@ -1,27 +1,41 @@
 name: Score Submission
+
 on:
-  push:
-    paths:
-      - 'submissions/**'
   workflow_dispatch:
+    inputs:
+      participant_name:
+        description: 'Team Name'
+        required: true
+
+permissions:
+  contents: write
 
 jobs:
   score:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-
+      
       - name: Install dependencies
-        run: pip install pandas cryptography
+        run: pip install pandas scikit-learn
 
       - name: Run Evaluation
         env:
-          COMPETITION_PRIVATE_KEY: ${{ secrets.COMPETITION_PRIVATE_KEY }}
           TEST_LABELS: ${{ secrets.TEST_LABELS }}
         run: python evaluate.py
+
+      - name: Update Leaderboard
+        env:
+          PARTICIPANT: ${{ github.event.inputs.participant_name }}
+        run: python render_leaderboard.py
+
+      - name: Commit Results
+        run: |
+          git config --global user.name "Leaderboard Bot"
+          git config --global user.email "actions@github.com"
+          git add leaderboard.csv leaderboard.md
+          git commit -m "Score for ${{ github.event.inputs.participant_name }}" || exit 0
+          git push

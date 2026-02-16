@@ -1,6 +1,5 @@
 # Leaderboard
 
-| Rank | Team | Score | Date |
-|---|---|---|---|
-| 1 | team alpha | 0.0000 | 2026-02-16 |
-| 2 | brainstromers | 0.0000 | 2026-02-16 |
+| Rank | Team | Score | Model | Date |
+|---|---|---|---|---|
+| 1 | victory_test | 0.2000 | GNN | 2026-02-16 |

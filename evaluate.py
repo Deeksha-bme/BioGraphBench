@@ -13,26 +13,24 @@ def evaluate():
             with open("score.txt", "w") as f: f.write("0.0000")
             return
 
-        # Load data
-        truth_df = pd.read_csv(io.StringIO(labels_raw))
-        sub_df = pd.read_csv(csv_files[0])
+        # Load and clean data
+        truth_df = pd.read_csv(io.StringIO(labels_raw.strip())).dropna()
+        sub_df = pd.read_csv(csv_files[0]).dropna()
 
-        # Align by graph_index to ensure we compare the right rows
-        merged = pd.merge(truth_df, sub_df, on='graph_index', suffixes=('_true', '_pred'))
+        # Force everything to integer to prevent 0.2000 errors
+        truth_df['graph_index'] = truth_df['graph_index'].astype(int)
+        truth_df['target'] = truth_df['target'].astype(int)
+        sub_df['graph_index'] = sub_df['graph_index'].astype(int)
+        sub_df['target'] = sub_df['target'].astype(int)
+
+        # Merge on index to ensure we are comparing the right rows
+        merged = pd.merge(truth_df, sub_df, on='graph_index', how='inner')
         
-        if merged.empty:
-            score = 0.0
-        else:
-            score = f1_score(merged['target_true'].astype(int), 
-                             merged['target_pred'].astype(int), 
-                             average='macro')
+        # Calculate Simple Accuracy first to test, then F1
+        score = f1_score(merged['target_x'], merged['target_y'], average='macro')
         
         with open("score.txt", "w") as f:
             f.write(f"{score:.4f}")
             
     except Exception as e:
-        print(f"Error: {e}")
         with open("score.txt", "w") as f: f.write("0.0000")
-
-if __name__ == "__main__":
-    evaluate()

@@ -42,7 +42,14 @@ jobs:
         run: |
           git config --global user.name "Leaderboard Bot"
           git config --global user.email "bot@github.com"
+          
+          # 1. Add and commit the changes first
           git add leaderboard.csv leaderboard.md
-          git commit -m "Update for ${{ github.event.inputs.participant_name }}" || echo "No changes"
+          git commit -m "Update for ${{ github.event.inputs.participant_name }}" || echo "No changes to commit"
+          
+          # 2. If the pull fails, it's usually because of a conflict. 
+          # This command tells git to grab the online version and put our new row on top.
           git pull --rebase origin main
+          
+          # 3. Finally, send it back to the cloud
           git push origin main

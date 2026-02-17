@@ -1,6 +1,4 @@
-import pandas as pd
 import os
-import io
 import glob
 from sklearn.metrics import f1_score
 
@@ -13,37 +11,33 @@ def evaluate():
             with open("score.txt", "w") as f: f.write("0.0000")
             return
 
-        # 1. Load data but SKIP the header row entirely
-        # This prevents the "0.2000" (1/5) header-match trap
-        truth_df = pd.read_csv(io.StringIO(labels_raw), header=None, skiprows=1)
-        sub_df = pd.read_csv(csv_files[0], header=None, skiprows=1)
+        # Helper function to get ONLY the targets (the second number in each line)
+        def get_targets(text):
+            lines = text.strip().split('\n')
+            targets = []
+            for line in lines:
+                parts = line.split(',')
+                # Only take it if it's a number (ignores the 'target' header)
+                if len(parts) == 2 and parts[1].strip().isdigit():
+                    targets.append(int(parts[1].strip()))
+            return targets
 
-        # 2. Assign standard column names
-        truth_df.columns = ['idx', 'val']
-        sub_df.columns = ['idx', 'val']
+        # Get targets from Secret and Submission
+        y_true = get_targets(labels_raw)
+        with open(csv_files[0], 'r') as f:
+            y_pred = get_targets(f.read())
 
-        # 3. Force clean integers (this is the most important part)
-        for df in [truth_df, sub_df]:
-            df['idx'] = pd.to_numeric(df['idx'], errors='coerce')
-            df['val'] = pd.to_numeric(df['val'], errors='coerce')
-            df.dropna(inplace=True)
-            df['idx'] = df['idx'].astype(int)
-            df['val'] = df['val'].astype(int)
-
-        # 4. Merge on the index
-        merged = pd.merge(truth_df, sub_df, on='idx', suffixes=('_true', '_pred'))
-        
-        # 5. Calculate Score based ONLY on the 4 data points
-        if len(merged) == 0:
-            score = 0.0000
+        # If we have 4 matches, calculate F1. If 0 matches, score is 0.
+        if len(y_true) == len(y_pred) and len(y_true) > 0:
+            score = f1_score(y_true, y_pred, average='macro')
         else:
-            # Macro F1 comparing only the data, not the headers
-            score = f1_score(merged['val_true'], merged['val_pred'], average='macro')
+            # This is a fallback if the lengths don't match
+            score = 0.0000
         
         with open("score.txt", "w") as f:
             f.write(f"{score:.4f}")
             
-    except Exception as e:
+    except Exception:
         with open("score.txt", "w") as f: f.write("0.0000")
 
 if __name__ == "__main__":

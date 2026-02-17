@@ -4,6 +4,7 @@ from sklearn.metrics import f1_score
 
 def evaluate():
     try:
+        # Get labels from GitHub Secrets
         labels_raw = os.getenv("TEST_LABELS", "").strip()
         csv_files = glob.glob("submissions/*.csv")
         
@@ -11,29 +12,29 @@ def evaluate():
             with open("score.txt", "w") as f: f.write("0.0000")
             return
 
-        # THIS IS THE FIX: Only grab the 4 target values (0, 1, 0, 1)
-        # It skips the header by checking if the value is a digit
-        def extract_values(text):
-            lines = text.strip().split('\n')
-            results = []
-            for line in lines:
-                parts = line.split(',')
-                if len(parts) == 2:
-                    val = parts[1].strip()
-                    if val.isdigit(): # Only keeps 1, 0, 1, 1
-                        results.append(int(val))
-            return results
+        def get_only_numbers(text):
+            data = []
+            # Split into lines and look at each one
+            for line in text.strip().split('\n'):
+                # Clean the line and split by comma
+                parts = [p.strip() for p in line.split(',')]
+                # IF the second part is a number, we keep it. 
+                # This AUTOMATICALLY skips the word "target"
+                if len(parts) >= 2 and parts[1].isdigit():
+                    data.append(int(parts[1]))
+            return data
 
-        y_true = extract_values(labels_raw)
+        # Extract just the 1s and 0s
+        y_true = get_only_numbers(labels_raw)
         
         with open(csv_files[0], 'r') as f:
-            y_pred = extract_values(f.read())
+            y_pred = get_only_numbers(f.read())
 
-        # If we found 4 numbers in both files, calculate the score
+        # Check: Do we have exactly 4 numbers to compare?
         if len(y_true) == 4 and len(y_pred) == 4:
             score = f1_score(y_true, y_pred, average='macro')
         else:
-            # If lengths don't match, something is wrong with the submission file
+            # This triggers if your submission doesn't have 4 rows of data
             score = 0.0000
         
         with open("score.txt", "w") as f:

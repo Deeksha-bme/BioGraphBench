@@ -1,67 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BioGraphBench Leaderboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <style>
-        :root { --primary: #6b5b95; --bg: #0f0c29; --card: #1b1b3a; --text: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(to right, #0f0c29, #302b63, #24243e); color: var(--text); padding: 40px; }
-        .container { max-width: 1000px; margin: auto; background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { text-align: center; color: #b19cd9; margin-bottom: 5px; }
-        p.subtitle { text-align: center; font-size: 0.9em; opacity: 0.7; margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; padding: 15px; border-bottom: 2px solid var(--primary); color: #b19cd9; }
-        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .bar-container { background: #333; border-radius: 5px; width: 100px; height: 10px; display: inline-block; margin-right: 10px; }
-        .bar-fill { background: linear-gradient(90deg, #8e2de2, #4a00e0); height: 100%; border-radius: 5px; }
-        .rank-1 { color: #ffd700; font-weight: bold; } /* Gold for Winner */
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🏆 BioGraphBench Leaderboard</h1>
-        <p class="subtitle">Structural & Historical Inference of Functional Transitions</p>
-        <table id="lb-table">
-            <thead>
-                <tr>
-                    <th>RANK</th>
-                    <th>TEAM</th>
-                    <th>SCORE</th>
-                    <th>MODEL TYPE</th>
-                    <th>DATE</th>
-                </tr>
-            </thead>
-            <tbody id="lb-body">
-                </tbody>
-        </table>
-    </div>
-
-    <script>
-        const CSV_URL = 'leaderboard.csv';
-        Papa.parse(CSV_URL, {
-            download: true, header: true,
-            complete: function(results) {
-                const data = results.data.filter(row => row.team);
-                data.sort((a, b) => b.score - a.score);
-                const body = document.getElementById('lb-body');
-                data.forEach((row, i) => {
-                    const scoreWidth = (parseFloat(row.score) * 100).toFixed(1);
-                    body.innerHTML += `
-                        <tr>
-                            <td class="${i===0 ? 'rank-1' : ''}">${i + 1}</td>
-                            <td>${row.team}</td>
-                            <td>
-                                <div class="bar-container"><div class="bar-fill" style="width: ${scoreWidth}%"></div></div>
-                                ${row.score}
-                            </td>
-                            <td><code>${row.model || 'N/A'}</code></td>
-                            <td>${row.date}</td>
-                        </tr>`;
-                });
-            }
-        });
-    </script>
-</body>
-</html>
+<script>
+    const CSV_URL = 'leaderboard.csv';
+    Papa.parse(CSV_URL, {
+        download: true, 
+        header: true,
+        skipEmptyLines: true, // Crucial to skip those blank lines!
+        transformHeader: function(h) { return h.trim().toLowerCase(); }, // Cleans 'model ' to 'model'
+        complete: function(results) {
+            const data = results.data.filter(row => row.team);
+            data.sort((a, b) => parseFloat(b.score) - parseFloat(a.score));
+            
+            const body = document.getElementById('lb-body');
+            body.innerHTML = ''; // Clear previous content
+            
+            data.forEach((row, i) => {
+                const scoreValue = parseFloat(row.score) || 0;
+                const scoreWidth = (scoreValue * 100).toFixed(1);
+                
+                // Use row.model (trimmed)
+                const modelDisplay = row.model ? row.model.trim() : 'Baseline';
+                
+                body.innerHTML += `
+                    <tr>
+                        <td class="${i===0 ? 'rank-1' : ''}">${i + 1}</td>
+                        <td>${row.team}</td>
+                        <td>
+                            <div class="bar-container"><div class="bar-fill" style="width: ${scoreWidth}%"></div></div>
+                            ${scoreValue.toFixed(4)}
+                        </td>
+                        <td><code>${modelDisplay}</code></td>
+                        <td>${row.date}</td>
+                    </tr>`;
+            });
+        }
+    });
+</script>

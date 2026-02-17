@@ -13,26 +13,22 @@ def evaluate():
             with open("score.txt", "w") as f: f.write("0.0000")
             return
 
-        # Load data while skipping any blank lines found in the CSV
-        truth_df = pd.read_csv(io.StringIO(labels_raw.strip()), skip_blank_lines=True)
-        sub_df = pd.read_csv(csv_files[0], skip_blank_lines=True)
+        # Load Truth and Submissions
+        truth_df = pd.read_csv(io.StringIO(labels_raw.strip()))
+        sub_df = pd.read_csv(csv_files[0])
 
-        # Force conversion to numeric and remove any non-numeric junk
+        # FORCE BOTH TO INTEGERS (Critical for 1.0000)
         truth_df = truth_df.apply(pd.to_numeric, errors='coerce').dropna().astype(int)
         sub_df = sub_df.apply(pd.to_numeric, errors='coerce').dropna().astype(int)
 
-        # Ensure column names are standard for the merge
-        truth_df.columns = ['graph_index', 'target']
-        sub_df.columns = ['graph_index', 'target']
-
-        # Inner merge aligns the rows by graph_index automatically
-        merged = pd.merge(truth_df, sub_df, on='graph_index', suffixes=('_true', '_pred'))
+        # Merge on index to align rows
+        merged = pd.merge(truth_df, sub_df, on='graph_index')
         
         if len(merged) == 0:
             score = 0.0000
         else:
-            # Calculate F1 score on the matched rows
-            score = f1_score(merged['target_true'], merged['target_pred'], average='macro')
+            # Column 1 of truth vs Column 1 of submission
+            score = f1_score(merged.iloc[:, 1], merged.iloc[:, 2], average='macro')
         
         with open("score.txt", "w") as f:
             f.write(f"{score:.4f}")

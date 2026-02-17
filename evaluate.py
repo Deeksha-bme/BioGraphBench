@@ -30,17 +30,16 @@ def evaluate():
             df['idx'] = df['idx'].astype(int)
             df['val'] = df['val'].astype(int)
 
-        # 3. Use a merge to find where the indices match perfectly
-        merged = pd.merge(truth_df, sub_df, on='idx')
+       # 3. Use a merge to find where the indices match perfectly
+        # suffixes help us identify which 'val' is which
+        merged = pd.merge(truth_df, sub_df, on='idx', suffixes=('_true', '_pred'))
         
         # 4. Calculate Score
-        # If we have 4 data rows matching, length will be 4.
         if len(merged) == 0:
             score = 0.0000
         else:
-            # We use the F1 score for the actual 4 rows of data
-            # merged.iloc[:, 1] is truth_val, merged.iloc[:, 2] is sub_val
-            score = f1_score(merged.iloc[:, 1], merged.iloc[:, 2], average='macro')
+            # Explicitly call the columns by name to avoid indexing errors
+            score = f1_score(merged['val_true'], merged['val_pred'], average='macro')
         
         with open("score.txt", "w") as f:
             f.write(f"{score:.4f}")

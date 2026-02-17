@@ -13,32 +13,32 @@ def evaluate():
             with open("score.txt", "w") as f: f.write("0.0000")
             return
 
-        # 1. Load ground truth from Secrets
-        # .strip() handles the extra line 5 seen in your image
+        # Load Truth and Submission
         truth_df = pd.read_csv(io.StringIO(labels_raw.strip()))
-        
-        # 2. Load the uploaded submission
         sub_df = pd.read_csv(csv_files[0])
 
-        # 3. Clean and Cast: This ensures '1' (text) becomes 1 (number)
-        # This is the secret to moving from 0.2000 to 1.0000
-        truth_df = truth_df.dropna().astype(int)
-        sub_df = sub_df.dropna().astype(int)
+        # CLEANING: This is vital for any number of rows
+        # It removes empty lines and ensures numbers are treated as numbers
+        truth_df = truth_df.apply(pd.to_numeric, errors='coerce').dropna().astype(int)
+        sub_df = sub_df.apply(pd.to_numeric, errors='coerce').dropna().astype(int)
 
-        # 4. Merge on graph_index to ensure rows align perfectly
+        # Ensure column names match
+        truth_df.columns = ['graph_index', 'target']
+        sub_df.columns = ['graph_index', 'target']
+
+        # MERGE: This automatically scales to however many rows you have
         merged = pd.merge(truth_df, sub_df, on='graph_index', suffixes=('_true', '_pred'))
         
-        # 5. Calculate Score
-        if merged.empty:
+        if len(merged) == 0:
             score = 0.0000
         else:
+            # Macro F1 handles multiple classes and large datasets perfectly
             score = f1_score(merged['target_true'], merged['target_pred'], average='macro')
         
         with open("score.txt", "w") as f:
             f.write(f"{score:.4f}")
             
     except Exception as e:
-        print(f"Evaluation Error: {e}")
         with open("score.txt", "w") as f: f.write("0.0000")
 
 if __name__ == "__main__":

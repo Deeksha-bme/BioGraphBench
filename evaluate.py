@@ -13,21 +13,20 @@ def evaluate():
             with open("score.txt", "w") as f: f.write("0.0000")
             return
 
-        # Load Truth and Submissions
         truth_df = pd.read_csv(io.StringIO(labels_raw.strip()))
         sub_df = pd.read_csv(csv_files[0])
 
-        # FORCE BOTH TO INTEGERS (Critical for 1.0000)
+        # Convert to integers to ensure '1' == 1
         truth_df = truth_df.apply(pd.to_numeric, errors='coerce').dropna().astype(int)
         sub_df = sub_df.apply(pd.to_numeric, errors='coerce').dropna().astype(int)
 
-        # Merge on index to align rows
+        # Merge on graph_index
         merged = pd.merge(truth_df, sub_df, on='graph_index')
         
         if len(merged) == 0:
             score = 0.0000
         else:
-            # Column 1 of truth vs Column 1 of submission
+            # Calculate F1 score
             score = f1_score(merged.iloc[:, 1], merged.iloc[:, 2], average='macro')
         
         with open("score.txt", "w") as f:

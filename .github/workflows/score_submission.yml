@@ -10,6 +10,11 @@ on:
         required: true
         default: 'Baseline'
 
+# This prevents the "Double Click" or multiple users from breaking the CSV
+concurrency:
+  group: leaderboard-update
+  cancel-in-progress: false
+
 jobs:
   score:
     runs-on: ubuntu-latest
@@ -17,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Important for rebase to work
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -38,21 +43,11 @@ jobs:
           MODEL_TYPE: ${{ github.event.inputs.model_name }}
         run: python render_leaderboard.py
 
-    
       - name: Commit and Push
         run: |
           git config --global user.name "Leaderboard Bot"
           git config --global user.email "bot@github.com"
-          
-          # 1. Add everything so nothing is 'unstaged'
           git add leaderboard.csv leaderboard.md
-          
-          # 2. Pull with rebase and tell it to AUTO-STASH any mess
-          # This handles the 'unstaged changes' error automatically
           git pull --rebase --autostash origin main
-          
-          # 3. Commit the new results
-          git commit -m "Update for ${{ github.event.inputs.participant_name }}" || echo "No changes to commit"
-          
-          # 4. Push to the repository
+          git commit -m "Update for ${{ github.event.inputs.participant_name }}" || echo "No changes"
           git push origin main

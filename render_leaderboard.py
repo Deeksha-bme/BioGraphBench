@@ -9,14 +9,17 @@ def main():
     csv_path = base_path / "leaderboard.csv"
     md_path = base_path / "leaderboard.md"
 
-    if not score_path.exists(): return
+    if not score_path.exists():
+        return
 
     score = score_path.read_text().strip()
+    
+    # GRAB INPUTS: These names must match your .yml file exactly
     team = os.getenv("PARTICIPANT", "Anonymous")
-    model = os.getenv("MODEL_TYPE", "Not Specified") # Grabs the input from GitHub
+    model = os.getenv("MODEL_TYPE", "Baseline") 
     date = datetime.now().strftime("%Y-%m-%d")
 
-    # Save to CSV
+    # Append to the CSV file
     file_exists = csv_path.exists()
     with open(csv_path, "a", newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
@@ -24,7 +27,7 @@ def main():
             writer.writerow(["team", "score", "model", "date"])
         writer.writerow([team, score, model, date])
     
-    # Sort and generate the Markdown table
+    # Sort data by score (highest first)
     rows = []
     with open(csv_path, "r", encoding='utf-8') as f:
         reader = csv.DictReader(f)
@@ -32,10 +35,12 @@ def main():
             try:
                 row['score'] = float(row['score'])
                 rows.append(row)
-            except: continue
+            except:
+                continue
     
     rows.sort(key=lambda x: x['score'], reverse=True)
     
+    # Rebuild the Markdown table for the website
     md_content = "# Leaderboard\n\n| Rank | Team | Score | Model | Date |\n|---|---|---|---|---|\n"
     for i, r in enumerate(rows, 1):
         md_content += f"| {i} | {r['team']} | {r['score']:.4f} | {r['model']} | {r['date']} |\n"

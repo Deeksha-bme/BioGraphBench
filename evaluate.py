@@ -27,11 +27,19 @@ def evaluate():
             with open("score.txt", "w") as f:
                 f.write("0.0000")
             return
+y_true = extract_raw_numbers(labels_raw)
 
-        y_true = extract_raw_numbers(labels_raw)
+print("CSV files found:", csv_files)
 
-        with open(csv_files[0], "r") as f:
-            y_pred = extract_raw_numbers(f.read())
+with open(csv_files[0], "r") as f:
+    content = f.read()
+    print("Reading file:", csv_files[0])
+    print("File content:\n", content)
+    y_pred = extract_raw_numbers(content)
+
+print("y_true:", y_true)
+print("y_pred:", y_pred)
+
 
         if len(y_true) == len(y_pred) and len(y_true) > 0:
             score = f1_score(y_true, y_pred, average="macro")

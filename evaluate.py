@@ -11,27 +11,29 @@ def evaluate():
             with open("score.txt", "w") as f: f.write("0.0000")
             return
 
-        # Helper function to get ONLY the targets (the second number in each line)
-        def get_targets(text):
+        # THIS IS THE FIX: Only grab the 4 target values (0, 1, 0, 1)
+        # It skips the header by checking if the value is a digit
+        def extract_values(text):
             lines = text.strip().split('\n')
-            targets = []
+            results = []
             for line in lines:
                 parts = line.split(',')
-                # Only take it if it's a number (ignores the 'target' header)
-                if len(parts) == 2 and parts[1].strip().isdigit():
-                    targets.append(int(parts[1].strip()))
-            return targets
+                if len(parts) == 2:
+                    val = parts[1].strip()
+                    if val.isdigit(): # Only keeps 1, 0, 1, 1
+                        results.append(int(val))
+            return results
 
-        # Get targets from Secret and Submission
-        y_true = get_targets(labels_raw)
+        y_true = extract_values(labels_raw)
+        
         with open(csv_files[0], 'r') as f:
-            y_pred = get_targets(f.read())
+            y_pred = extract_values(f.read())
 
-        # If we have 4 matches, calculate F1. If 0 matches, score is 0.
-        if len(y_true) == len(y_pred) and len(y_true) > 0:
+        # If we found 4 numbers in both files, calculate the score
+        if len(y_true) == 4 and len(y_pred) == 4:
             score = f1_score(y_true, y_pred, average='macro')
         else:
-            # This is a fallback if the lengths don't match
+            # If lengths don't match, something is wrong with the submission file
             score = 0.0000
         
         with open("score.txt", "w") as f:

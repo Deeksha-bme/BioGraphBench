@@ -17,22 +17,22 @@ def evaluate():
         truth_df = pd.read_csv(io.StringIO(labels_raw.strip()))
         sub_df = pd.read_csv(csv_files[0])
 
-        # CLEANING: This is vital for any number of rows
-        # It removes empty lines and ensures numbers are treated as numbers
+        # FORCE NUMERIC: Converts text to numbers and removes empty rows
+        # This is the fix for the 0.2000 score
         truth_df = truth_df.apply(pd.to_numeric, errors='coerce').dropna().astype(int)
         sub_df = sub_df.apply(pd.to_numeric, errors='coerce').dropna().astype(int)
 
-        # Ensure column names match
+        # Standardize column names
         truth_df.columns = ['graph_index', 'target']
         sub_df.columns = ['graph_index', 'target']
 
-        # MERGE: This automatically scales to however many rows you have
+        # Align rows based on the graph_index
         merged = pd.merge(truth_df, sub_df, on='graph_index', suffixes=('_true', '_pred'))
         
         if len(merged) == 0:
             score = 0.0000
         else:
-            # Macro F1 handles multiple classes and large datasets perfectly
+            # Calculate Macro F1 based on matched rows
             score = f1_score(merged['target_true'], merged['target_pred'], average='macro')
         
         with open("score.txt", "w") as f:
